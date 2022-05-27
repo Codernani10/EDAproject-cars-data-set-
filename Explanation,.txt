@@ -1,0 +1,207 @@
+1) Choosing a Data Set
+
+# The data set can be found here: [Cars dataset](https://www.kaggle.com/ljanjughazyan/cars1)
+
+# This data set was straightaway stored in a CSV (Comma Separated Value) format on Kaggle.
+I did not have to perform any operations to get the data into a format. 
+Since the data was already in a CSV format it needed very little work to import the data set all 
+I had to do is just download, read the CSV data and store it in a pandas data frame, 
+for this I had to import pandas library. 
+
+2)Formatting the data into a data frame
+
+Since the data set was already in a CSV format. All I had to do is just format the data into a pandas data frame. 
+This was done by using a pandas data frame method called (read_csv) by importing pandas library. 
+The read_csv data frame method was used by passing the filename as an argument. 
+And then by executing this, it converted the CSV file into a neatly organized pandas data frame format.
+
+
+#importing the required libraries
+
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+get_ipython().run_line_magic('matplotlib', 'inline')
+sns.set(color_codes=True)
+
+
+3) Loading the CSV data file into a pandas dataframe
+
+df = pd.read_csv("C:\\Users\\naresh\\OneDrive\\Desktop\\EDA\\CARS\\Data set\\CARS.csv")
+
+pd.set_option('display.max_rows',df.shape[0]+1)
+df
+
+
+# Reverting back to the default
+pd.set_option('display.max_rows',10)
+
+
+4)Determining instances and the number of features.
+
+# This data set has 428 instances and 15 features also called as rows and columns. 
+The instances here represent different car brands such as BMW, Mercedes, Audi, and 35 more, 
+features represent Make, Model, Type, Origin, Drive Train, MSRP, Invoice, Engine Size, Cylinders, 
+Horsepower, MPG-City, MPG-Highway, Weight, Wheelbase, and Length of the car.
+
+df.shape
+
+
+5)Removing irrelevant features.
+
+# I will remove some features such as Drive Train, Model, Invoice, Type, and Origin from this dataset. 
+Because these features do not contribute to the prediction of price. As of now, I will remove 
+the Drive Train, the Drive Train will not support for predicting the price of the car because most of the 
+cars in this data set were front-wheel drive (52.8%) and the rest were rear wheel and all wheel drive.
+Removing irrelevant features
+
+df = df.drop(['Model','DriveTrain','Invoice', 'Origin', 'Type'], axis=1)
+df.head(5)
+
+
+*****************************6) Exploratory Data Analysis *******************************************
+
+Identifying the type of data using info()
+To identify the data types, I use the info method. The info method prints a summary of the data in the data
+frame along with its data types. Here, there are 428 entries (0-427 rows). 
+The data frame after removing irrelevant columns comprises 10 columns. 
+Here the Make, MSRP  are of an object type whereas Engine size and Cylinders are of float type 
+and Horsepower, MPG_City, MPG_Highway, Weight, Wheelbase and Length are of integer type. 
+Hence there are 2 object types, 2 float types and 6 integer types of data present in the data frame. 
+
+df.info()
+
+
+Finding the dimensions of the data frame
+ 
+To get the number of rows and columns of the data frame, I used the shape method. 
+The shape method gets the number of rows and the number of columns of the data frame. 
+Here, there are 428 rows and 10 columns. Hence the shape method returns (428, 10). 
+And to find the dimensions of the data frame I used ndim (dimension) method. 
+This method prints the dimensions of the data frame. 
+Here, the whole data frame is of 2 dimensional (rows and columns).
+
+df.ndim
+
+df.shape
+
+
+7) **Finding the duplicate data.**
+
+This is a handy thing to perform on a data set because often there might be duplicate or redundant 
+data in the data sets, to remove this I used the MSRP as a reference such that there cannot be
+ more than two same MSRP prices of the car, it shows that few data are redundant because 
+ prices of the cars can never match very accurately. So before removing the duplicates, 
+ there were 428 rows and after removing there are 410 meaning that there were 18 duplicate data.
+
+
+df = df.drop_duplicates(subset='MSRP', keep='first')
+df.count()
+
+
+**Finding the missing or null values.**
+
+print(df.isnull().sum())
+
+
+Many times there might be a lot of missing values in the dataset. There are several approaches to deal with this
+scenario either we can drop those values or fill those values with the mean of that column. 
+Here, 2 entries were having N/A in the Cylinders feature. 
+This can be found by using the is_null( ) method which returns the null or missing values in the data frame. 
+So rather than deleting those two entries, I filled those values with the mean of the cylinders columns 
+and their value came as 6.0 each. I was able to find this while I was peeking at the first and 
+last few rows of the data set. I think rather than deleting this is a good approach because 
+every entry of data is vital. 
+
+df['Cylinders'].fillna(df['Cylinders'].mean(),inplace=True)
+
+print(df.isnull().sum())
+
+
+8) **Converting the object values to integer type.**
+
+While having a look at the data, the MSRP was stored as an object type. This is a serious problem because it is impossible to plot those values on a graph because it is a primary requirement that during plotting a graph all the values must be of type integer data. The author has stored, the MSRP in a different format ($36, 000) so I had to remove the formatting and then convert them to an integer.
+Removing the formatting
+
+df['MSRP'] = [x.replace('$', '') for x in df['MSRP']] 
+df['MSRP'] = [x.replace(',', '') for x in df['MSRP']]
+
+df['MSRP']=pd.to_numeric(df['MSRP'],errors='coerce')
+
+
+****************************4) Data Visualizations **************************************************
+
+**Detecting Outliers**
+#An outlier is a point or set of points different from other points. 
+Sometimes they can be very high or very low. It’s often a good idea to detect and remove the outliers. 
+Because outliers are one of the primary reasons for resulting in a less accurate model. 
+Hence it’s a good idea to remove them. I will perform the IQR score technique to detect and remove the outliers. 
+Often outliers can be seen with visualizations using a box plot. Shown below is the box plot of MSRP. 
+In the plot, you can find some points are outside the box they are none other than outliers. 
+I referred the above outlier technique from towards data science article which can be found 
+in the references section 
+
+# Boxplot
+
+plt.figure(figsize=(12,7))
+sns.boxplot(x=df['MSRP'])
+plt.show()
+
+df.describe()
+
+
+# **Histogram**
+
+
+df.Make.value_counts().nlargest(40).plot(kind='bar', figsize=(15,7))
+f={'family':'Arial','size':50,"color":'r'}
+v={'family':'cambria','size':30,"color":'g'}
+plt.title("Number of cars by make",fontdict=f)
+plt.ylabel('Number of cars',fontdict=v)
+plt.xlabel('Make',fontdict=v);
+
+
+# Histogram refers to the frequency of occurrence of variables in an interval. 
+Here, there are mainly 10 different car manufacturing companies, but it is often important to know who 
+has the maximum number of cars. I'm just plotting histograms to find the total number of car manufacturers 
+and this plot does not support my predictions or doesn't have relations with the price feature. 
+Plotting a histogram is one of a trivial solution which lets us know the total number of different car manufacturers. 
+From the histogram it can be seen that BMW has almost several cars (12) followed by Audi (11) and many more.
+
+**Heat Maps**
+
+plt.figure(figsize=(12,7))
+c= df.corr()
+sns.heatmap(c,cmap="BrBG",annot=True)
+plt.xlabel("HeatMap",fontdict=f)
+
+
+Heat Maps is a plot which is necessary when we need to find the dependent variables. 
+One of the best ways to find the correlation between the features can be done using heat maps. 
+As shown above MPG_City has a strong correlation with MPG_Highway of 94% this is very important 
+because the more the relationship between the variables the more accurate the model will be. 
+This is how the correlation between the features can be found using heat maps. 
+With the help of heat maps I can use these related features in building my model.
+
+**Scatterplot between two related varirables**
+
+fig, ax = plt.subplots(figsize=(10,7))
+ax.scatter(df['Horsepower'], df['MSRP'])
+f={'family':'Arial','size':30,"color":'r'}
+v={'family':'cambria','size':20,"color":'g'}
+plt.title('Scatter plot between MSRP and Horsepower',fontdict=f)
+ax.set_xlabel('---- Horsepower ---->',fontdict=v)
+ax.set_ylabel('---- MSRP ---->',fontdict=v)
+plt.show()
+
+
+**Scatterplot between two related varirables**
+
+fig, ax = plt.subplots(figsize=(10,7))
+ax.scatter(df['MPG_City'], df['MPG_Highway'])
+f={'family':'Arial','size':20,"color":'g'}
+plt.title('Scatter plot between MPG_City and MPG_Highway',fontdict=f)
+plt.show
+
+
